@@ -16,6 +16,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	_ "k8s.io/client-go/tools/record"
 	klog "k8s.io/klog/v2"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -115,7 +116,7 @@ const (
 )
 
 var (
-	kubeconfig    = flag.String("kubeconfig", "", "Kubeconfig file absolute path")
+	kubeconfig    = flag.String("kubeconfig", "~/.kube/config", "Kubeconfig file absolute path")
 	prioritizeNp  = flag.String("prioritize-np", "test-p2,test-p3", "Nodepools list that will be prioritized, comma separated for several ones")
 	cordonNp      = flag.String("cordon-np", "test-p1", "Nodepools to cordon (mark unschedulable in spec), comma separated for several ones")
 	nodePoolLabel = flag.String("nodepool-label", "cloud.google.com/gke-nodepool", "Nodepool selector label key")
@@ -168,15 +169,25 @@ func GetClientset() (cs *kubernetes.Clientset, retErr error) {
 
 	var err error
 
-	if *kubeconfig == "" {
+	confPath := *kubeconfig
+
+	if confPath == "" {
 		config, err = rest.InClusterConfig()
 		if err != nil {
 			retErr = errors.New(err.Error())
 		}
 	} else {
-		config, err = clientcmd.BuildConfigFromFlags("", *kubeconfig)
+		if confPath[0] == '~' {
+			dirname, err := os.UserHomeDir()
+			if err != nil {
+				klog.Fatalf("Error trying to retrieve user home dir: %s", err)
+			}
+			confPath = dirname + confPath[1:]
+		}
+
+		config, err = clientcmd.BuildConfigFromFlags("", confPath)
 		if err != nil {
-			retErr = errors.New(fmt.Sprintf("Error with config file `%s`, %s", *kubeconfig, err))
+			retErr = errors.New(fmt.Sprintf("Error with config file `%s`, %s", confPath, err))
 		}
 	}
 
