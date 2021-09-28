@@ -235,7 +235,7 @@ func main() {
 	klog.V(4).Infof("Cleaned `prioritize-np` value: %s", prioritizeAr)
 	klog.V(4).Infof("Cleaned `cordon-np` value: %s", cordonAr)
 
-	if (*undo) {
+	if *undo {
 		klog.Infof("About to remove %s from priorities cm", prioritizeAr)
 		prs.RemoveNpIfExists(prioritizeAr, *priorityValue)
 	} else {
