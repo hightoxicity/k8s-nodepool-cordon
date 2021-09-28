@@ -6,4 +6,5 @@ RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-w -s -v -extldflags -static" -a
 
 FROM scratch
 COPY --from=0 /go/src/github.com/hightoxicity/k8s-nodepool-cordon/main /k8s-nodepool-cordon
-CMD ["/k8s-nodepool-cordon"]
+ENTRYPOINT ["/k8s-nodepool-cordon"]
+CMD ["-help"]
